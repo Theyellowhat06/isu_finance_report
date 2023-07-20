@@ -1,8 +1,10 @@
 "use client";
 import * as TW from "@material-tailwind/react";
 import * as XLSX from "xlsx";
+import * as React from "react";
 
 export default function Nd() {
+  const [pdata, setPdata] = React.useState<any>([]);
   const handleFileUpload = (e: any) => {
     const reader = new FileReader();
     reader.readAsBinaryString(e.target.files[0]);
@@ -15,6 +17,7 @@ export default function Nd() {
       const sheetName2 = workbook.SheetNames[1];
       const sheet2 = workbook.Sheets[sheetName2];
       const parsedData2 = XLSX.utils.sheet_to_json(sheet2);
+      setPdata(parsedData1);
       console.log(parsedData1);
       console.log(parsedData2);
       // setData(parsedData);
@@ -32,13 +35,50 @@ export default function Nd() {
               onChange={handleFileUpload}
             />
           </div>
-
           <TW.Button>button</TW.Button>
         </div>
       </TW.Card>
-      <TW.Card>
-        <div className="p-4"></div>
-      </TW.Card>
+      {pdata && pdata.length > 0 && (
+        <TW.Card>
+          <div className="p-4 overflow-auto">
+            <table>
+              <thead>
+                <tr>
+                  {Object.keys(pdata[0]).map((key) => (
+                    <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
+                      <TW.Typography>{key}</TW.Typography>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {pdata.map((row: any, index: any) => {
+                  const isLast = index === pdata.length - 1;
+                  const classes = isLast
+                    ? "p-4"
+                    : "p-4 border-b border-blue-gray-50";
+                  return (
+                    <tr>
+                      {Object.keys(row).map((key) => (
+                        <td className={classes}>
+                          <TW.Typography
+                            variant="small"
+                            color="blue-gray"
+                            className="font-normal"
+                          >
+                            {row[key]}
+                          </TW.Typography>
+                        </td>
+                      ))}
+                      {/* <td>{row}</td> */}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </TW.Card>
+      )}
     </div>
   );
 }
