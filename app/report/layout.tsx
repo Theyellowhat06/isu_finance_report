@@ -71,7 +71,7 @@ export default function MonitorLayout({ children }: any) {
           <hr className="my-2 border-blue-gray-50" />
           <List className="overflow-y-auto">
             {listItems.map((item: any, i: any) => (
-              <>
+              <div key={i}>
                 {item.children ? (
                   <Accordion
                     open={
@@ -155,13 +155,13 @@ export default function MonitorLayout({ children }: any) {
                     </ListItem>
                   </Link>
                 )}
-              </>
+              </div>
             ))}
           </List>
         </Card>
       </div>
       <div className="pr-4 pt-4 overflow-y-auto w-full">{children}</div>
-      <Dialog
+      {/* <Dialog
         open={dialogContent}
         handler={() => setDialogContent(null)}
         size="xs"
@@ -186,7 +186,7 @@ export default function MonitorLayout({ children }: any) {
           </Button>
           <Button onClick={() => console.log(userData)}>Save</Button>
         </DialogFooter>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 }
