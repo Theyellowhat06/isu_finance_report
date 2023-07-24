@@ -103,7 +103,7 @@ export default function Users() {
           <TW.Input label="Username" />
           <TW.Input label="Username" />
           <TW.Input label="Username" />
-          <TW.Button>Create User</TW.Button>
+          <TW.Button>Submit</TW.Button>
         </form>
       </TW.Drawer>
     </div>
