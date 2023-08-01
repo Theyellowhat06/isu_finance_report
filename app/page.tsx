@@ -6,10 +6,42 @@ import {
   Input,
   Typography,
 } from "@material-tailwind/react";
+import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+import * as Icon from "@heroicons/react/24/solid";
 
 export default function Home() {
+  const [username, setUsername] = React.useState();
+  const [password, setPassword] = React.useState();
+  const [loading, setLoading] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState("");
+  const router = useRouter();
+
+  const login = () => {
+    setLoading(true);
+    axios
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/user/login`, {
+        username: username,
+        password: password,
+      })
+      .then((response) => {
+        if (response.data.success) {
+          console.log(response.data.result);
+          setErrorMsg("");
+          router.push(`${process.env.NEXT_PUBLIC_PATH_MANAGE}`);
+        } else {
+          setErrorMsg(response.data.msg || "Failed");
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
+  };
+
   return (
     <div className="w-screen h-screen flex bg-blue-300">
       <div className="w-[calc(100%-600px)] bg-blue-300"></div>
@@ -23,27 +55,29 @@ export default function Home() {
               Login
             </Typography>
             <Typography>You can sign in using registered account</Typography>
-            <Input label="Username"></Input>
-            <Input label="Password" type="password"></Input>
+            <Input
+              label="Username"
+              onChange={(e: any) => setUsername(e.target.value)}
+            ></Input>
+            <Input
+              label="Password"
+              type="password"
+              onChange={(e: any) => setPassword(e.target.value)}
+            ></Input>
             <div className="flex items-center">
               <Checkbox label="Remember me" />
             </div>
             <div>
-              <Link href={`${process.env.NEXT_PUBLIC_PATH_MANAGE}`}>
-                <Button fullWidth>Login</Button>
-              </Link>
+              <Button fullWidth onClick={login}>
+                <div className="flex justify-center">
+                  {loading && (
+                    <Icon.ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+                  )}
+                  Login
+                </div>
+              </Button>
             </div>
-            {/* <div>
-              <Link href={"/register"}>
-                <Button color="deep-purple" variant="text" fullWidth>
-                  Sign Up
-                </Button>
-              </Link>
-            </div>
-            <Typography variant="small">
-              If you dont have any account to login you can register and use
-              fresh new account
-            </Typography> */}
+            <div className="text-red-500 flex justify-center">{errorMsg}</div>
           </div>
         </Card>
       </div>

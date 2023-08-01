@@ -4,9 +4,14 @@ import * as XLSX from "xlsx";
 import * as React from "react";
 import * as Icon from "@heroicons/react/24/solid";
 import Link from "next/link";
+import axios from "axios";
 
 export default function Nd() {
   const [pdata, setPdata] = React.useState<any>([]);
+  const [year, setYear] = React.useState(new Date().getFullYear().toString());
+  const [month, setMonth] = React.useState("1");
+  const [loading, setLoading] = React.useState(false);
+  const [errorMsg, setErrorMsg] = React.useState("");
   const handleFileUpload = (e: any) => {
     const reader = new FileReader();
     reader.readAsBinaryString(e.target.files[0]);
@@ -28,17 +33,45 @@ export default function Nd() {
   };
 
   const upload = () => {
-    const data = pdata
+    const employees = pdata
       .filter(
         ({ __EMPTY_3, __EMPTY_6 }: any) =>
           __EMPTY_3 !== undefined && !isNaN(Number(__EMPTY_6))
       )
       .map(({ __EMPTY_3, __EMPTY_6 }: any) => ({
-        __EMPTY_3,
-        __EMPTY_6,
+        register_number: __EMPTY_3,
+        nd_value: __EMPTY_6,
       }));
+    // console.log(employees);
+    const data = {
+      employees: employees,
+      nd_year: year,
+      nd_month: month,
+      nd_date: `${year}-${month}-01`,
+    };
     console.log(data);
+    axios
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/nd/add`, data)
+      .then((response) => {
+        if (response.data.success) {
+          console.log(response.data.result);
+          setErrorMsg("");
+          // router.push(`${process.env.NEXT_PUBLIC_PATH_MANAGE}`);
+        } else {
+          setErrorMsg(response.data.msg || "Failed");
+        }
+        setLoading(false);
+      })
+      .catch((error) => {
+        setLoading(false);
+      });
   };
+
+  let years = [];
+  const now = new Date().getFullYear();
+  for (let i = 2022; i <= now; i++) {
+    years.push(i);
+  }
 
   return (
     <div className="space-y-2">
@@ -50,6 +83,42 @@ export default function Nd() {
               accept=".xlsx, .xls"
               onChange={handleFileUpload}
             />
+          </div>
+          <div>
+            <TW.Select
+              label="Жил"
+              value={year}
+              onChange={(value: any) => setYear(value)}
+            >
+              {years.map((y) => (
+                <TW.Option key={y} value={`${y}`}>
+                  {y}
+                </TW.Option>
+              ))}
+              {/* <TW.Option value="2023">2023</TW.Option>
+              <TW.Option value="2022">2022</TW.Option>
+              <TW.Option value="2021">2021</TW.Option> */}
+            </TW.Select>
+          </div>
+          <div>
+            <TW.Select
+              label="Сар"
+              value={month}
+              onChange={(value: any) => setMonth(value)}
+            >
+              <TW.Option value="1">1</TW.Option>
+              <TW.Option value="2">2</TW.Option>
+              <TW.Option value="3">3</TW.Option>
+              <TW.Option value="4">4</TW.Option>
+              <TW.Option value="5">5</TW.Option>
+              <TW.Option value="6">6</TW.Option>
+              <TW.Option value="7">7</TW.Option>
+              <TW.Option value="8">8</TW.Option>
+              <TW.Option value="9">9</TW.Option>
+              <TW.Option value="10">10</TW.Option>
+              <TW.Option value="11">11</TW.Option>
+              <TW.Option value="12">12</TW.Option>
+            </TW.Select>
           </div>
           {/* <TW.Button>
             <div className="flex">
@@ -66,11 +135,13 @@ export default function Nd() {
             </TW.Button>
           </Link>
 
-          <TW.Button color="green" onClick={upload}>
-            <div className={"flex"}>
-              <Icon.DocumentArrowUpIcon className="w-4 h-4 mr-2" /> Upload
-            </div>
-          </TW.Button>
+          {pdata && pdata.length > 3 && (
+            <TW.Button color="green" onClick={upload}>
+              <div className={"flex"}>
+                <Icon.DocumentArrowUpIcon className="w-4 h-4 mr-2" /> Upload
+              </div>
+            </TW.Button>
+          )}
         </div>
       </TW.Card>
       {pdata && pdata.length > 3 && (
