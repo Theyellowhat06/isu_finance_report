@@ -3,12 +3,218 @@ import * as TW from "@material-tailwind/react";
 import * as React from "react";
 import * as XLSX from "xlsx";
 import * as Icon from "@heroicons/react/24/solid";
+import axios from "axios";
+import { AgGridReact } from "ag-grid-react";
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
 
 export default function Report() {
   const [range, setRange] = React.useState(null);
   const [year, setYear] = React.useState(new Date().getFullYear().toString());
   const [quarter, setQuarter] = React.useState("1");
   const [show, setShow] = React.useState(false);
+  const [taxesData, setTaxesData] = React.useState<any[]>();
+  const gridRef = React.useRef<AgGridReact<any>>(null); // Optional - for accessing Grid's API
+  const [rowData, setRowData] = React.useState(); // Set rowData to Array of Objects, one Object per Row
+
+  // Each Column Definition results in one Column.
+  const [columnDefs, setColumnDefs] = React.useState([
+    {
+      field: "taxes_number",
+      headerName: "Татвар төлөгчийн дугаар",
+      cellClass: "stringType",
+      filter: true,
+    },
+    { field: "lastname", headerName: "Овог", filter: true },
+    { field: "firstname", headerName: "Нэр", filter: true },
+    {
+      field: "1",
+      headerName: "Хуулийн 7.1.1",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) => formater.format(params.value),
+    },
+    {
+      field: "2",
+      headerName: "Хуулийн 7.1.2, 7.1.3, 7.1.4, 7.1.5, 7.1.7",
+      editable: true,
+    },
+    {
+      field: "3",
+      headerName: "Хуулийн 7.1.6",
+      editable: true,
+    },
+    {
+      field: "4",
+      headerName: "Нийт (1+2+3)",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(
+          Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"])
+        ),
+    },
+    { field: "5", headerName: "ЭМД, НДШ Хувь" },
+    {
+      field: "6",
+      headerName: "ЭМД, НДШ Дүн (Хуулийн 7,1,1-5, 7,1,7)",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["4"]) * 0.115),
+    },
+    {
+      field: "7",
+      headerName: "ЭМД, НДШ Дүн (Хуулийн 7,1,6)",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["3"]) * 0.115),
+    },
+    {
+      field: "8",
+      headerName:
+        "Хуулийн 7.1-д заасан орлогод татвар ногдуулах орлого (4-6-7)",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(
+          Number(params.data["4"]) -
+            Number(params.data["6"]) -
+            Number(params.data["7"])
+        ),
+    },
+    { field: "9", headerName: "Орлогын төрөл" },
+    { field: "10", headerName: "Орлого" },
+    {
+      field: "11",
+      headerName: "Нийт татвар ногдуулах орлого",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["8"])),
+    },
+    { field: "12", headerName: "Шатлал" },
+    {
+      field: "13",
+      headerName:
+        "Хуулийн 7.1.1, 7.1.5, 7.1.7-д заасан орлогод Ногдуулсан татвар",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["11"]) * 0.1),
+    },
+    {
+      field: "14",
+      headerName: "Орлого хүлээн авсан сарын тоо /ажилласан сар/",
+    },
+    { field: "15", headerName: "Хуулийн 23.1-т заасан хөнгөлөлт сард ногдох" },
+    { field: "16", headerName: "Хуулийн 23.1-т заасан хөнгөлөлт нийт" },
+    {
+      field: "17",
+      headerName:
+        "Хуулийн 7,1-д заасан орлогод ногдуулсан Хөнгөлөлтийн дараах татварын дүн",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["11"]) - Number(params.data["13"])),
+    },
+    {
+      field: "18",
+      headerName: "Хуулийн 7.1.6-д заасан орлогод ногдуулсан дүн",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["3"]) * 0.1),
+    },
+    {
+      field: "19",
+      headerName: "Шууд бус орлогод ногдуулсан албан татвар",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(Number(params.data["2"]) * 0.1),
+    },
+    {
+      field: "20",
+      headerName: "Нийт суутгуулсан албан татварын дүн",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) =>
+        formater.format(
+          Number(params.data["17"]) +
+            Number(params.data["18"]) +
+            Number(params.data["19"])
+        ),
+    },
+  ]);
+  const formater = Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  const onBtExport = React.useCallback(() => {
+    gridRef.current!.api.exportDataAsExcel();
+  }, []);
+
+  // Example of consuming Grid Event
+  const cellClickedListener = React.useCallback((event: any) => {
+    console.log("cellClicked", event);
+  }, []);
+  // React.useEffect(()=>{
+
+  // },[])
+  const options = {
+    // The columns to export
+    columns: ["taxes_number", "lastname", "firstname", "1", "2", "3", "4"],
+    // The format of the Excel file
+    format: "xlsx",
+  };
+
+  const getData = () => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_PATH_API}/taxes/report`, {
+        params: { year: year, quarter: quarter },
+      })
+      .then((response) => {
+        if (response.data.success) {
+          console.log(response.data.result);
+          setTaxesData(
+            response.data.result.map(
+              (row: {
+                id: number;
+                firstname: string;
+                lastname: string;
+                taxes_number: string;
+                register_number: string;
+                nd_value: number;
+              }) => ({
+                taxes_number: row.taxes_number,
+                lastname: row.lastname,
+                firstname: row.firstname,
+                1: row.nd_value,
+                2: "0",
+                3: "0",
+                4: row.nd_value,
+                5: "0",
+                6: row.nd_value * 0.115,
+                7: "0",
+                8: row.nd_value - row.nd_value * 0.115,
+                9: "0",
+                10: "0",
+                11: row.nd_value - row.nd_value * 0.115,
+                12: "1",
+                13: (row.nd_value - row.nd_value * 0.115) * 0.1,
+                14: "3",
+                15: "999",
+                16: "0",
+                17:
+                  row.nd_value -
+                  row.nd_value * 0.115 -
+                  (row.nd_value - row.nd_value * 0.115) * 0.1,
+                18: "0",
+                19: "0",
+                20:
+                  row.nd_value -
+                  row.nd_value * 0.115 -
+                  (row.nd_value - row.nd_value * 0.115) * 0.1,
+              })
+            )
+          );
+        }
+      });
+  };
 
   const data = [
     {
@@ -1495,7 +1701,7 @@ export default function Report() {
     <div>
       <div className="bg-white rounded-xl drop-shadow-md p-4 min-h-[calc(100vh-32px)]">
         <div className="flex space-x-2">
-          <div className="w-64">
+          {/* <div className="w-64">
             <TW.Select
               label="Тайлангийн хугацаа"
               onChange={(value: any) => setRange(value)}
@@ -1504,7 +1710,7 @@ export default function Report() {
               <TW.Option value="1">Хагас жилээр</TW.Option>
               <TW.Option value="2">Бүтэн жилээр</TW.Option>
             </TW.Select>
-          </div>
+          </div> */}
           <div>
             <TW.Select
               label="Жил"
@@ -1516,34 +1722,19 @@ export default function Report() {
               <TW.Option value="2021">2021</TW.Option>
             </TW.Select>
           </div>
-          {range && (range == "0" || range == "1") && (
-            <div>
-              {range == "0" ? (
-                <TW.Select
-                  label="Улирал"
-                  value={quarter}
-                  onChange={(value: any) => setQuarter(value)}
-                >
-                  <TW.Option value="1">1-р улирал</TW.Option>
-                  <TW.Option value="2">2-р улирал</TW.Option>
-                  <TW.Option value="3">3-р улирал</TW.Option>
-                  <TW.Option value="4">4-р улирал</TW.Option>
-                </TW.Select>
-              ) : (
-                <TW.Select
-                  label="Жилийн хагас"
-                  value={quarter}
-                  onChange={(value: any) => setQuarter(value)}
-                >
-                  <TW.Option value="1">Эхний хагас</TW.Option>
-                  <TW.Option value="2">Сүүлийн хагас</TW.Option>
-                </TW.Select>
-              )}
-            </div>
-          )}
-          <TW.Button disabled={range == null} onClick={() => setShow(true)}>
-            Харах
-          </TW.Button>
+          <div>
+            <TW.Select
+              label="Улирал"
+              value={quarter}
+              onChange={(value: any) => setQuarter(value)}
+            >
+              <TW.Option value="1">1-р улирал</TW.Option>
+              <TW.Option value="2">2-р улирал</TW.Option>
+              <TW.Option value="3">3-р улирал</TW.Option>
+              <TW.Option value="4">4-р улирал</TW.Option>
+            </TW.Select>
+          </div>
+          <TW.Button onClick={getData}>Харах</TW.Button>
           {show && (
             <TW.Button color="green" onClick={exportData}>
               <div className="flex">
@@ -1552,13 +1743,49 @@ export default function Report() {
               </div>
             </TW.Button>
           )}
+          {taxesData && (
+            <TW.Button
+              color="green"
+              onClick={() => {
+                const gridApi = gridRef.current!.api;
+                console.log(gridApi.exportDataAsCsv());
+
+                // const data = gridApi.getRowData();
+
+                // const jsonArray = [];
+
+                // for (const row of data) {
+                //   const jsonObject = {};
+                //   for (const column of gridApi.getColumnDefs()) {
+                //     jsonObject[column.field] = row[column.field];
+                //   }
+                //   jsonArray.push(jsonObject);
+                // }
+              }}
+            >
+              <div className="flex">
+                <Icon.DocumentArrowDownIcon className="w-4 h-4 mr-2" />
+                <div>Export</div>
+              </div>
+            </TW.Button>
+          )}
         </div>
-        {show && (
+        <div className="ag-theme-alpine" style={{ width: "100%", height: 400 }}>
+          <AgGridReact
+            ref={gridRef} // Ref for accessing Grid's API
+            rowData={taxesData} // Row Data for Rows
+            columnDefs={columnDefs} // Column Defs for Columns
+            animateRows={true} // Optional - set to 'true' to have rows animate when sorted
+            rowSelection="multiple" // Options - allows click selection of rows
+            onCellClicked={cellClickedListener} // Optional - registering for Grid Event
+          />
+        </div>
+        {/* {taxesData && taxesData.length > 0 && (
           <div className="pt-4 overflow-auto">
             <table>
               <thead>
                 <tr>
-                  {Object.keys(data[0]).map((key) => (
+                  {Object.keys(taxesData[0]).map((key) => (
                     <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
                       <TW.Typography>{key}</TW.Typography>
                     </th>
@@ -1566,8 +1793,8 @@ export default function Report() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((row: any, index: any) => {
-                  const isLast = index === data.length - 1;
+                {taxesData.map((row: any, index: any) => {
+                  const isLast = index === taxesData.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
@@ -1584,14 +1811,13 @@ export default function Report() {
                           </TW.Typography>
                         </td>
                       ))}
-                      {/* <td>{row}</td> */}
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* <Button>button</Button>
