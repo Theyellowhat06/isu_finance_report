@@ -12,6 +12,9 @@ export default function Nd() {
   const [month, setMonth] = React.useState("1");
   const [loading, setLoading] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState("");
+
+  const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+
   const handleFileUpload = (e: any) => {
     const reader = new FileReader();
     reader.readAsBinaryString(e.target.files[0]);
@@ -35,12 +38,13 @@ export default function Nd() {
   const upload = () => {
     const employees = pdata
       .filter(
-        ({ __EMPTY_3, __EMPTY_6 }: any) =>
+        ({ __EMPTY_3, __EMPTY_6, __EMPTY_9 }: any) =>
           __EMPTY_3 !== undefined && !isNaN(Number(__EMPTY_6))
       )
-      .map(({ __EMPTY_3, __EMPTY_6 }: any) => ({
+      .map(({ __EMPTY_3, __EMPTY_6, __EMPTY_9 }: any) => ({
         register_number: __EMPTY_3,
         nd_value: __EMPTY_6,
+        nd_fee: __EMPTY_9,
       }));
     // console.log(employees);
     const data = {
@@ -56,6 +60,7 @@ export default function Nd() {
         if (response.data.success) {
           console.log(response.data.result);
           setErrorMsg("");
+          location.reload;
           // router.push(`${process.env.NEXT_PUBLIC_PATH_MANAGE}`);
         } else {
           setErrorMsg(response.data.msg || "Failed");
@@ -64,6 +69,7 @@ export default function Nd() {
       })
       .catch((error) => {
         setLoading(false);
+        location.reload;
       });
   };
 
@@ -106,18 +112,9 @@ export default function Nd() {
               value={month}
               onChange={(value: any) => setMonth(value)}
             >
-              <TW.Option value="1">1</TW.Option>
-              <TW.Option value="2">2</TW.Option>
-              <TW.Option value="3">3</TW.Option>
-              <TW.Option value="4">4</TW.Option>
-              <TW.Option value="5">5</TW.Option>
-              <TW.Option value="6">6</TW.Option>
-              <TW.Option value="7">7</TW.Option>
-              <TW.Option value="8">8</TW.Option>
-              <TW.Option value="9">9</TW.Option>
-              <TW.Option value="10">10</TW.Option>
-              <TW.Option value="11">11</TW.Option>
-              <TW.Option value="12">12</TW.Option>
+              {months.map((m: number) => (
+                <TW.Option value={`${m}`}>{m}-р сар</TW.Option>
+              ))}
             </TW.Select>
           </div>
           {/* <TW.Button>
@@ -138,7 +135,12 @@ export default function Nd() {
           {pdata && pdata.length > 3 && (
             <TW.Button color="green" onClick={upload}>
               <div className={"flex"}>
-                <Icon.DocumentArrowUpIcon className="w-4 h-4 mr-2" /> Upload
+                {loading ? (
+                  <Icon.ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Icon.DocumentArrowUpIcon className="w-4 h-4 mr-2" />
+                )}{" "}
+                Upload
               </div>
             </TW.Button>
           )}

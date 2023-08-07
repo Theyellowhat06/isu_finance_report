@@ -38,6 +38,7 @@ export default function Home() {
         setLoading(false);
       })
       .catch((error) => {
+        setErrorMsg("Connection failed");
         setLoading(false);
       });
   };

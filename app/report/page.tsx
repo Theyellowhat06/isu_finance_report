@@ -59,8 +59,7 @@ export default function Report() {
       field: "6",
       headerName: "ЭМД, НДШ Дүн (Хуулийн 7,1,1-5, 7,1,7)",
       cellEditor: "agNumberCellEditor",
-      valueFormatter: (params: any) =>
-        formater.format(Number(params.data["4"]) * 0.115),
+      valueFormatter: (params: any) => formater.format(params.value),
     },
     {
       field: "7",
@@ -179,6 +178,7 @@ export default function Report() {
                 taxes_number: string;
                 register_number: string;
                 nd_value: number;
+                nd_fee: number;
               }) => ({
                 taxes_number: row.taxes_number,
                 lastname: row.lastname,
@@ -188,7 +188,7 @@ export default function Report() {
                 3: "0",
                 4: row.nd_value,
                 5: "0",
-                6: row.nd_value * 0.115,
+                6: row.nd_fee,
                 7: "0",
                 8: row.nd_value - row.nd_value * 0.115,
                 9: "0",
@@ -1748,7 +1748,19 @@ export default function Report() {
               color="green"
               onClick={() => {
                 const gridApi = gridRef.current!.api;
-                console.log(gridApi.exportDataAsCsv());
+                const now = new Date();
+                // console.log(
+                //   new Date().toDateString(),
+                //   new Date().toISOString(),
+                //   now.toLocaleDateString(),
+                //   now.toLocaleString(),
+                //   now.to
+                // );
+                gridApi.exportDataAsCsv({
+                  fileName: `taxes_${year}_${quarter}_${now.getFullYear()}${
+                    now.getMonth() + 1
+                  }${now.getDate()}`,
+                });
 
                 // const data = gridApi.getRowData();
 
@@ -1770,7 +1782,10 @@ export default function Report() {
             </TW.Button>
           )}
         </div>
-        <div className="ag-theme-alpine" style={{ width: "100%", height: 400 }}>
+        <div
+          className="ag-theme-alpine"
+          style={{ width: "100%", height: "calc(100vh - 100px)" }}
+        >
           <AgGridReact
             ref={gridRef} // Ref for accessing Grid's API
             rowData={taxesData} // Row Data for Rows
