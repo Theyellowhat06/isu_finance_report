@@ -89,21 +89,83 @@ export default function Report() {
       valueFormatter: (params: any) =>
         formater.format(Number(params.data["8"])),
     },
-    { field: "12", headerName: "Шатлал" },
+    {
+      field: "12",
+      headerName: "Шатлал",
+      /*
+    120say = 1
+    120 - 180say = 2
+    180say < = 3
+    */
+    },
     {
       field: "13",
       headerName:
         "Хуулийн 7.1.1, 7.1.5, 7.1.7-д заасан орлогод Ногдуулсан татвар",
       cellEditor: "agNumberCellEditor",
-      valueFormatter: (params: any) =>
-        formater.format(Number(params.data["11"]) * 0.1),
+      valueFormatter: (params: any) => {
+        const income = params.data["11"];
+        let taxes;
+        if (income <= 10000000) {
+          taxes = income * 0.1;
+        } else if (income <= 15000000) {
+          taxes = 10000000 * 0.1 + (income - 10000000) * 0.15;
+        } else {
+          taxes = 10000000 * 0.1 + 5000000 * 0.15 + (income - 15000000) * 0.2;
+        }
+        return formater.format(Number(taxes));
+      },
+
+      /*sar bolgon deeree
+        if("11" <= 10,000,000) "11" *0.1
+        else if("11" <= 15,000,000){
+           a = 10,000,000 * 0.1
+               b = ("11" - 10,000,000) * 0.15
+              a + b
+        }else {
+          a = 10,000,000 * 0.1
+          b = 5,000,000 * 0.15
+          c = ("11" - (a + b)) *0.20
+          a + b + c
+        }*/
     },
     {
       field: "14",
       headerName: "Орлого хүлээн авсан сарын тоо /ажилласан сар/",
     },
     { field: "15", headerName: "Хуулийн 23.1-т заасан хөнгөлөлт сард ногдох" },
-    { field: "16", headerName: "Хуулийн 23.1-т заасан хөнгөлөлт нийт" },
+    {
+      field: "16",
+      headerName: "Хуулийн 23.1-т заасан хөнгөлөлт нийт",
+      cellEditor: "agNumberCellEditor",
+      valueFormatter: (params: any) => {
+        const income = params.data["11"];
+        let result = 0;
+        if (income <= 500000) {
+          result = 20000;
+        } else if (income <= 1000000) {
+          result = 18000;
+        } else if (income <= 1500000) {
+          result = 16000;
+        } else if (income <= 2000000) {
+          result = 14000;
+        } else if (income <= 2500000) {
+          result = 12000;
+        } else if (income <= 3000000) {
+          result = 10000;
+        }
+        return formater.format(Number(result));
+      },
+      /*
+      "11"
+      0-500,000 = 20,000
+      501,000-1,000,000 = 18,000
+      1,000,001 - 1,500,000 = 16,000
+      1,500,001 - 2,000,000 = 14,000
+      2,000,001 - 2,500,000 = 12,000
+      2,500,001 - 3,000,000 = 10,000
+      */
+    },
     {
       field: "17",
       headerName:
