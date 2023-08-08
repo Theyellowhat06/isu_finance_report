@@ -74,6 +74,9 @@ export default function Report() {
         "Хуулийн 7.1-д заасан орлогод татвар ногдуулах орлого (4-6-7)",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) =>
+        /* 4 = Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"]) */
         formater.format(
           Number(params.data["1"]) +
             Number(params.data["2"]) +
@@ -89,6 +92,9 @@ export default function Report() {
       headerName: "Нийт татвар ногдуулах орлого",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) =>
+        /* 4 = Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"]) */
         formater.format(
           Number(params.data["1"]) +
             Number(params.data["2"]) +
