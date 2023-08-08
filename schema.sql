@@ -41,6 +41,8 @@ create table nd_report(
     register_number varchar(10),
     nd_value decimal(13,2),
     nd_fee decimal(13,2),
+    nd_tax decimal(13, 2),
+    nd_tax_discount decimal(13, 2),
     nd_month int,
     nd_year int,
     nd_date timestamp default null,

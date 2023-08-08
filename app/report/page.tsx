@@ -75,7 +75,9 @@ export default function Report() {
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) =>
         formater.format(
-          Number(params.data["4"]) -
+          Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"]) -
             Number(params.data["6"]) -
             Number(params.data["7"])
         ),
@@ -87,11 +89,19 @@ export default function Report() {
       headerName: "Нийт татвар ногдуулах орлого",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) =>
-        formater.format(Number(params.data["8"])),
+        formater.format(
+          Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"]) -
+            Number(params.data["6"]) -
+            Number(params.data["7"])
+        ),
+      // formater.format(Number(params.data["8"])),
     },
     {
       field: "12",
       headerName: "Шатлал",
+      editable: true,
       /*
     120say = 1
     120 - 180say = 2
@@ -113,7 +123,7 @@ export default function Report() {
         } else {
           taxes = 10000000 * 0.1 + 5000000 * 0.15 + (income - 15000000) * 0.2;
         }
-        return formater.format(Number(taxes));
+        return formater.format(Number(params.value));
       },
 
       /*sar bolgon deeree
@@ -154,7 +164,7 @@ export default function Report() {
         } else if (income <= 3000000) {
           result = 10000;
         }
-        return formater.format(Number(result));
+        return formater.format(Number(params.value));
       },
       /*
       "11"
@@ -172,7 +182,19 @@ export default function Report() {
         "Хуулийн 7,1-д заасан орлогод ногдуулсан Хөнгөлөлтийн дараах татварын дүн",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) =>
-        formater.format(Number(params.data["11"]) - Number(params.data["13"])),
+        /*11 = (Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"])) -
+            Number(params.data["6"]) -
+            Number(params.data["7"]) */
+        formater.format(
+          Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"]) -
+            Number(params.data["6"]) -
+            Number(params.data["7"]) -
+            Number(params.data["13"])
+        ),
     },
     {
       field: "18",
@@ -193,10 +215,23 @@ export default function Report() {
       headerName: "Нийт суутгуулсан албан татварын дүн",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) =>
+        /* 17 = (Number(params.data["1"]) +
+        Number(params.data["2"]) +
+        Number(params.data["3"])) -
+        Number(params.data["6"]) -
+        Number(params.data["7"]) - Number(params.data["13"])
+        
+        18 = (Number(params.data["3"]) * 0.1)
+        19 = (Number(params.data["2"]) * 0.1)*/
         formater.format(
-          Number(params.data["17"]) +
-            Number(params.data["18"]) +
-            Number(params.data["19"])
+          Number(params.data["1"]) +
+            Number(params.data["2"]) +
+            Number(params.data["3"]) -
+            Number(params.data["6"]) -
+            Number(params.data["7"]) -
+            Number(params.data["13"]) +
+            Number(params.data["3"]) * 0.1 +
+            Number(params.data["2"]) * 0.1
         ),
     },
   ]);
@@ -241,6 +276,8 @@ export default function Report() {
                 register_number: string;
                 nd_value: number;
                 nd_fee: number;
+                nd_tax: number;
+                nd_tax_discount: number;
               }) => ({
                 taxes_number: row.taxes_number,
                 lastname: row.lastname,
@@ -257,10 +294,10 @@ export default function Report() {
                 10: "0",
                 11: row.nd_value - row.nd_value * 0.115,
                 12: "1",
-                13: (row.nd_value - row.nd_value * 0.115) * 0.1,
+                13: row.nd_tax,
                 14: "3",
                 15: "999",
-                16: "0",
+                16: row.nd_tax_discount,
                 17:
                   row.nd_value -
                   row.nd_value * 0.115 -
@@ -1855,6 +1892,7 @@ export default function Report() {
             animateRows={true} // Optional - set to 'true' to have rows animate when sorted
             rowSelection="multiple" // Options - allows click selection of rows
             onCellClicked={cellClickedListener} // Optional - registering for Grid Event
+            copyHeadersToClipboard={true}
           />
         </div>
         {/* {taxesData && taxesData.length > 0 && (
