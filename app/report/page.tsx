@@ -193,14 +193,7 @@ export default function Report() {
             Number(params.data["3"])) -
             Number(params.data["6"]) -
             Number(params.data["7"]) */
-        formater.format(
-          Number(params.data["1"]) +
-            Number(params.data["2"]) +
-            Number(params.data["3"]) -
-            Number(params.data["6"]) -
-            Number(params.data["7"]) -
-            Number(params.data["13"])
-        ),
+        formater.format(Number(params.data["13"]) - Number(params.data["16"])),
     },
     {
       field: "18",
