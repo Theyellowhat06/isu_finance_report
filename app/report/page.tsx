@@ -223,12 +223,8 @@ export default function Report() {
         18 = (Number(params.data["3"]) * 0.1)
         19 = (Number(params.data["2"]) * 0.1)*/
         formater.format(
-          Number(params.data["1"]) +
-            Number(params.data["2"]) +
-            Number(params.data["3"]) -
-            Number(params.data["6"]) -
-            Number(params.data["7"]) -
-            Number(params.data["13"]) +
+          Number(params.data["13"]) -
+            Number(params.data["16"]) +
             Number(params.data["3"]) * 0.1 +
             Number(params.data["2"]) * 0.1
         ),
