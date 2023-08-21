@@ -8,6 +8,13 @@ import axios from "axios";
 export default function Employee() {
   const [openRight, setOpenRight] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [employee, setEmployee] = React.useState<{
+    taxes_number?: string;
+    register_number?: string;
+    firstname?: string;
+    lastname?: string;
+  }>();
+  const [employeeId, setEmployeeId] = React.useState<number>();
   const [data, setData] = React.useState<
     {
       id: number;
@@ -26,6 +33,35 @@ export default function Employee() {
       taxesNumber: "Taxes number",
     },
   ];
+
+  const createEmployee = () => {
+    axios
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/employees/add`, employee)
+      .then((response) => {
+        if (response.data.success) {
+          window.location.reload();
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const updateEmployee = () => {
+    axios
+      .post(
+        `${process.env.NEXT_PUBLIC_PATH_API}/employees/edit/${employeeId}`,
+        employee
+      )
+      .then((response) => {
+        if (response.data.success) {
+          window.location.reload();
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
 
   React.useEffect(() => {
     axios
@@ -46,7 +82,18 @@ export default function Employee() {
   return (
     <div>
       <div className="pb-2">
-        <TW.Button onClick={() => setOpenRight(true)}>
+        <TW.Button
+          onClick={() => {
+            setEmployee({
+              taxes_number: "",
+              register_number: "",
+              firstname: "",
+              lastname: "",
+            });
+            setEmployeeId(undefined);
+            setOpenRight(true);
+          }}
+        >
           <div className="flex">
             <Icon.PlusIcon className="w-4 h-4 mr-2" /> Add employee
           </div>
@@ -74,6 +121,12 @@ export default function Employee() {
                       )
                     );
                   })}
+                  <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
+                    <TW.Typography>.</TW.Typography>
+                  </th>
+                  <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
+                    <TW.Typography>Edit</TW.Typography>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -108,6 +161,22 @@ export default function Employee() {
                           )
                         );
                       })}
+                      <td className={classes} key={`${index}edit`}>
+                        <TW.Button
+                          onClick={() => {
+                            setEmployeeId(row.id);
+                            setEmployee({
+                              taxes_number: row.taxes_number,
+                              register_number: row.register_number,
+                              firstname: row.firstname,
+                              lastname: row.lastname,
+                            });
+                            setOpenRight(true);
+                          }}
+                        >
+                          <Icon.PencilIcon className="w-4 h-4" />
+                        </TW.Button>
+                      </td>
                       {/* <td>{row}</td> */}
                     </tr>
                   );
@@ -126,7 +195,7 @@ export default function Employee() {
       >
         <div className="mb-6 flex items-center justify-between">
           <TW.Typography variant="h5" color="blue-gray">
-            Add Employee
+            {employeeId ? "Edit" : "Add"} Employee
           </TW.Typography>
           <TW.IconButton
             variant="text"
@@ -137,11 +206,37 @@ export default function Employee() {
           </TW.IconButton>
         </div>
         <form className="space-y-2">
-          <TW.Input label="Username" />
-          <TW.Input label="Username" />
-          <TW.Input label="Username" />
-          <TW.Input label="Username" />
-          <TW.Button>Submit</TW.Button>
+          <TW.Input
+            label="Taxes number"
+            value={employee?.taxes_number}
+            onChange={(e) =>
+              setEmployee({ ...employee, taxes_number: e.target.value })
+            }
+          />
+          <TW.Input
+            label="Register number"
+            value={employee?.register_number}
+            onChange={(e) =>
+              setEmployee({ ...employee, register_number: e.target.value })
+            }
+          />
+          <TW.Input
+            label="Firstname"
+            value={employee?.firstname}
+            onChange={(e) =>
+              setEmployee({ ...employee, firstname: e.target.value })
+            }
+          />
+          <TW.Input
+            label="Lastname"
+            value={employee?.lastname}
+            onChange={(e) =>
+              setEmployee({ ...employee, lastname: e.target.value })
+            }
+          />
+          <TW.Button onClick={employeeId ? updateEmployee : createEmployee}>
+            Submit
+          </TW.Button>
         </form>
       </TW.Drawer>
     </div>
