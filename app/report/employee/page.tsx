@@ -4,10 +4,14 @@ import * as TW from "@material-tailwind/react";
 import * as React from "react";
 import * as Icon from "@heroicons/react/24/solid";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { toastError, toastSuccess } from "@/app/myToast";
+import { popover } from "@material-tailwind/react";
 
 export default function Employee() {
   const [openRight, setOpenRight] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+  const [openPopover, setOpenPopover] = React.useState(0);
   const [employee, setEmployee] = React.useState<{
     taxes_number?: string;
     register_number?: string;
@@ -33,50 +37,99 @@ export default function Employee() {
       taxesNumber: "Taxes number",
     },
   ];
+  const token = localStorage.getItem("token");
 
   const createEmployee = () => {
+    const t = toast.loading("Createing new employee");
     axios
-      .post(`${process.env.NEXT_PUBLIC_PATH_API}/employees/add`, employee)
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/employees/add`, employee, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
       .then((response) => {
         if (response.data.success) {
-          window.location.reload();
+          getEmployees();
+          toastSuccess(t, "Employee created successfully");
+          setOpenRight(false);
+        } else {
+          toastError(t, response.data.msg || "Parameter invalid");
         }
       })
       .catch((error) => {
-        console.log(error);
+        toastError(t, error.message);
+        setOpenRight(false);
       });
   };
 
   const updateEmployee = () => {
+    const t = toast.loading("Updating employee");
     axios
       .post(
         `${process.env.NEXT_PUBLIC_PATH_API}/employees/edit/${employeeId}`,
-        employee
+        employee,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
       )
       .then((response) => {
         if (response.data.success) {
-          window.location.reload();
+          getEmployees();
+          toastSuccess(t, "Employee updated successfully");
+          setOpenRight(false);
+        } else {
+          toastError(t, response.data.msg || "Parameter invalid");
         }
       })
       .catch((error) => {
-        console.log(error);
+        toastError(t, error.message);
+        setOpenRight(false);
+      });
+  };
+
+  const removeEmployee = (employeeId: number) => {
+    const t = toast.loading("Deleting employee");
+    try {
+      axios
+        .post(
+          `${process.env.NEXT_PUBLIC_PATH_API}/employees/delete/${employeeId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
+        .then((response) => {
+          if (response.data.success) {
+            getEmployees();
+            toastSuccess(t, "Employee removed successfully");
+          } else {
+            toastError(t, response.data.msg || "Parameter invalid");
+          }
+        })
+        .catch((error) => {
+          toastError(t, error.message);
+        });
+    } catch (error) {
+      toastError(t, "Connection failed");
+    }
+  };
+
+  const getEmployees = () => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_PATH_API}/employees/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        if (response.data.success) {
+          setData(response.data.result);
+        } else {
+          toast.error(response.data.msg || "Connection failed");
+        }
+      })
+      .catch((error) => {
+        toast.error(error.message || "Connection failed");
       });
   };
 
   React.useEffect(() => {
-    axios
-      .get(`${process.env.NEXT_PUBLIC_PATH_API}/employees/all`)
-      .then((response) => {
-        if (response.data.success) {
-          console.log(response.data.result);
-          setData(response.data.result);
-          location.reload;
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        setLoading(false);
-      });
+    getEmployees();
   }, []);
 
   return (
@@ -125,7 +178,7 @@ export default function Employee() {
                     <TW.Typography>.</TW.Typography>
                   </th>
                   <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                    <TW.Typography>Edit</TW.Typography>
+                    <TW.Typography>Action</TW.Typography>
                   </th>
                 </tr>
               </thead>
@@ -161,7 +214,10 @@ export default function Employee() {
                           )
                         );
                       })}
-                      <td className={classes} key={`${index}edit`}>
+                      <td
+                        className={`${classes} space-x-2`}
+                        key={`${index}action`}
+                      >
                         <TW.Button
                           onClick={() => {
                             setEmployeeId(row.id);
@@ -176,6 +232,46 @@ export default function Employee() {
                         >
                           <Icon.PencilIcon className="w-4 h-4" />
                         </TW.Button>
+                        <TW.Popover
+                          open={openPopover == row.id}
+                          handler={() =>
+                            setOpenPopover(openPopover === 0 ? row.id : 0)
+                          }
+                        >
+                          <TW.PopoverHandler>
+                            <TW.Button
+                              variant="outlined"
+                              color="red"
+                              onClick={() => {}}
+                            >
+                              <Icon.TrashIcon className="w-4 h-4" />
+                            </TW.Button>
+                          </TW.PopoverHandler>
+                          <TW.PopoverContent>
+                            <TW.Typography>
+                              Do you really want to remove this employees?
+                            </TW.Typography>
+                            <div className="flex justify-end pt-2 pr-2 space-x-2">
+                              <TW.Button
+                                size="sm"
+                                variant="outlined"
+                                onClick={() => setOpenPopover(0)}
+                              >
+                                Cancel
+                              </TW.Button>
+                              <TW.Button
+                                color="red"
+                                size="sm"
+                                onClick={() => {
+                                  removeEmployee(row.id);
+                                  setOpenPopover(0);
+                                }}
+                              >
+                                Remove
+                              </TW.Button>
+                            </div>
+                          </TW.PopoverContent>
+                        </TW.Popover>
                       </td>
                       {/* <td>{row}</td> */}
                     </tr>

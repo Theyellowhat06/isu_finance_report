@@ -73,17 +73,17 @@ export default function Report() {
       headerName:
         "Хуулийн 7.1-д заасан орлогод татвар ногдуулах орлого (4-6-7)",
       cellEditor: "agNumberCellEditor",
-      valueFormatter: (params: any) =>
-        /* 4 = Number(params.data["1"]) +
+      valueFormatter: (params: any) => {
+        const r4 =
+          Number(params.data["1"]) +
+          Number(params.data["2"]) +
+          Number(params.data["3"]);
+        const r7 = Number(params.data["3"]) * 0.115;
+        return formater.format(r4 - Number(params.data["6"]) - r7);
+      },
+      /* 4 = Number(params.data["1"]) +
             Number(params.data["2"]) +
             Number(params.data["3"]) */
-        formater.format(
-          Number(params.data["1"]) +
-            Number(params.data["2"]) +
-            Number(params.data["3"]) -
-            Number(params.data["6"]) -
-            Number(params.data["7"])
-        ),
     },
     { field: "9", headerName: "Орлогын төрөл" },
     { field: "10", headerName: "Орлого" },
@@ -91,17 +91,24 @@ export default function Report() {
       field: "11",
       headerName: "Нийт татвар ногдуулах орлого",
       cellEditor: "agNumberCellEditor",
-      valueFormatter: (params: any) =>
-        /* 4 = Number(params.data["1"]) +
+      valueFormatter: (params: any) => {
+        const r4 =
+          Number(params.data["1"]) +
+          Number(params.data["2"]) +
+          Number(params.data["3"]);
+        const r7 = Number(params.data["3"]) * 0.115;
+        return formater.format(r4 - Number(params.data["6"]) - r7);
+      },
+      /* 4 = Number(params.data["1"]) +
             Number(params.data["2"]) +
             Number(params.data["3"]) */
-        formater.format(
-          Number(params.data["1"]) +
-            Number(params.data["2"]) +
-            Number(params.data["3"]) -
-            Number(params.data["6"]) -
-            Number(params.data["7"])
-        ),
+      // formater.format(
+      //   Number(params.data["1"]) +
+      //     Number(params.data["2"]) +
+      //     Number(params.data["3"]) -
+      //     Number(params.data["6"]) -
+      //     Number(params.data["7"])
+      // ),
       // formater.format(Number(params.data["8"])),
     },
     {
@@ -120,16 +127,18 @@ export default function Report() {
         "Хуулийн 7.1.1, 7.1.5, 7.1.7-д заасан орлогод Ногдуулсан татвар",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) => {
-        const income = params.data["11"];
-        let taxes;
-        if (income <= 10000000) {
-          taxes = income * 0.1;
-        } else if (income <= 15000000) {
-          taxes = 10000000 * 0.1 + (income - 10000000) * 0.15;
-        } else {
-          taxes = 10000000 * 0.1 + 5000000 * 0.15 + (income - 15000000) * 0.2;
-        }
-        return formater.format(Number(params.value));
+        // const income = params.data["11"];
+        // let taxes;
+        // if (income <= 10000000) {
+        //   taxes = income * 0.1;
+        // } else if (income <= 15000000) {
+        //   taxes = 10000000 * 0.1 + (income - 10000000) * 0.15;
+        // } else {
+        //   taxes = 10000000 * 0.1 + 5000000 * 0.15 + (income - 15000000) * 0.2;
+        // }
+        const r7 = Number(params.data["3"]) * 0.115;
+        const other = Number(params.data["2"]) + Number(params.data["3"]) - r7;
+        return formater.format(Number(params.value) + other);
       },
 
       /*sar bolgon deeree
@@ -155,7 +164,10 @@ export default function Report() {
       headerName: "Хуулийн 23.1-т заасан хөнгөлөлт нийт",
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) => {
-        const income = params.data["11"];
+        // const other =
+        const r7 = Number(params.data["3"]) * 0.115;
+
+        const income = Number(params.data["2"]) + Number(params.data["3"]) - r7;
         let result = 0;
         if (income <= 500000) {
           result = 20000;
@@ -187,13 +199,19 @@ export default function Report() {
       headerName:
         "Хуулийн 7,1-д заасан орлогод ногдуулсан Хөнгөлөлтийн дараах татварын дүн",
       cellEditor: "agNumberCellEditor",
-      valueFormatter: (params: any) =>
+      valueFormatter: (params: any) => {
         /*11 = (Number(params.data["1"]) +
             Number(params.data["2"]) +
             Number(params.data["3"])) -
             Number(params.data["6"]) -
             Number(params.data["7"]) */
-        formater.format(Number(params.data["13"]) - Number(params.data["16"])),
+        const r7 = Number(params.data["3"]) * 0.115;
+
+        const other = Number(params.data["2"]) + Number(params.data["3"]) - r7;
+        return formater.format(
+          Number(params.data["13"]) + other - Number(params.data["16"])
+        );
+      },
     },
     {
       field: "18",
@@ -213,7 +231,7 @@ export default function Report() {
       field: "20",
       headerName: "Нийт суутгуулсан албан татварын дүн",
       cellEditor: "agNumberCellEditor",
-      valueFormatter: (params: any) =>
+      valueFormatter: (params: any) => {
         /* 17 = (Number(params.data["1"]) +
         Number(params.data["2"]) +
         Number(params.data["3"])) -
@@ -222,12 +240,18 @@ export default function Report() {
         
         18 = (Number(params.data["3"]) * 0.1)
         19 = (Number(params.data["2"]) * 0.1)*/
-        formater.format(
+        const r7 = Number(params.data["3"]) * 0.115;
+
+        const other = Number(params.data["2"]) + Number(params.data["3"]) - r7;
+        console.log(other);
+        return formater.format(
           Number(params.data["13"]) -
+            other -
             Number(params.data["16"]) +
             Number(params.data["3"]) * 0.1 +
             Number(params.data["2"]) * 0.1
-        ),
+        );
+      },
     },
   ]);
   const formater = Intl.NumberFormat("en-US", {

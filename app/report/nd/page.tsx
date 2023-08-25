@@ -5,13 +5,13 @@ import * as React from "react";
 import * as Icon from "@heroicons/react/24/solid";
 import Link from "next/link";
 import axios from "axios";
+import { toast } from "react-toastify";
+import { toastError, toastSuccess } from "@/app/myToast";
 
 export default function Nd() {
   const [pdata, setPdata] = React.useState<any>([]);
   const [year, setYear] = React.useState(new Date().getFullYear().toString());
   const [month, setMonth] = React.useState("1");
-  const [loading, setLoading] = React.useState(false);
-  const [errorMsg, setErrorMsg] = React.useState("");
 
   const months = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
 
@@ -36,6 +36,7 @@ export default function Nd() {
   };
 
   const upload = () => {
+    const t = toast.loading("Файлыг илгээж байна...");
     const employees = pdata
       .filter(
         ({ __EMPTY_3, __EMPTY_6, __EMPTY_9 }: any) =>
@@ -59,17 +60,15 @@ export default function Nd() {
       .then((response) => {
         if (response.data.success) {
           console.log(response.data.result);
-          setErrorMsg("");
-          location.reload;
+          toastSuccess(t, `${year}-${month} сарийн файл амжилттай илгээгдлээ`);
+          setPdata([]);
           // router.push(`${process.env.NEXT_PUBLIC_PATH_MANAGE}`);
         } else {
-          setErrorMsg(response.data.msg || "Failed");
+          toastError(t, response.data.msg || "Failed");
         }
-        setLoading(false);
       })
       .catch((error) => {
-        setLoading(false);
-        location.reload;
+        toastError(t, error.message || "Failed");
       });
   };
 
@@ -135,12 +134,7 @@ export default function Nd() {
           {pdata && pdata.length > 3 && (
             <TW.Button color="green" onClick={upload}>
               <div className={"flex"}>
-                {loading ? (
-                  <Icon.ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Icon.DocumentArrowUpIcon className="w-4 h-4 mr-2" />
-                )}{" "}
-                Upload
+                <Icon.DocumentArrowUpIcon className="w-4 h-4 mr-2" /> Upload
               </div>
             </TW.Button>
           )}

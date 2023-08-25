@@ -3,9 +3,30 @@
 import * as TW from "@material-tailwind/react";
 import * as React from "react";
 import * as Icon from "@heroicons/react/24/solid";
+import { toast } from "react-toastify";
+import axios from "axios";
+import { toastError, toastSuccess } from "@/app/myToast";
 
 export default function Users() {
   const [openRight, setOpenRight] = React.useState(false);
+  const [openPopover, setOpenPopover] = React.useState(0);
+  const [user, setUser] = React.useState<{
+    firstname?: string;
+    lastname?: string;
+    username?: string;
+    role?: string;
+  }>();
+  const [userId, setUserId] = React.useState<number>();
+  const [data, setData] = React.useState<
+    {
+      id: number;
+      firstname: string;
+      lastname: string;
+      username: string;
+      role: string;
+      created_at: string;
+    }[]
+  >([]);
   const pdata = [
     {
       firstname: "Firstname",
@@ -14,10 +35,108 @@ export default function Users() {
       role: "Admin",
     },
   ];
+  const token = localStorage.getItem("token");
+
+  const createUser = () => {
+    const t = toast.loading("Createing new user");
+    axios
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/users/add`, user, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        if (response.data.success) {
+          getUsers();
+          toastSuccess(t, "User created successfully");
+          setOpenRight(false);
+        } else {
+          toastError(t, response.data.msg || "Parameter invalid");
+        }
+      })
+      .catch((error) => {
+        toastError(t, error.message);
+        setOpenRight(false);
+      });
+  };
+
+  const updateUser = () => {
+    const t = toast.loading("Updating user");
+    axios
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/users/edit/${userId}`, user, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        if (response.data.success) {
+          getUsers();
+          toastSuccess(t, "User updated successfully");
+          setOpenRight(false);
+        } else {
+          toastError(t, response.data.msg || "Parameter invalid");
+        }
+      })
+      .catch((error) => {
+        toastError(t, error.message);
+        setOpenRight(false);
+      });
+  };
+
+  const removeUser = (userId: number) => {
+    const t = toast.loading("Deleting user");
+    try {
+      axios
+        .post(`${process.env.NEXT_PUBLIC_PATH_API}/users/delete/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((response) => {
+          if (response.data.success) {
+            getUsers();
+            toastSuccess(t, "User removed successfully");
+          } else {
+            toastError(t, response.data.msg || "Parameter invalid");
+          }
+        })
+        .catch((error) => {
+          toastError(t, error.message);
+        });
+    } catch (error) {
+      toastError(t, "Connection failed");
+    }
+  };
+
+  const getUsers = () => {
+    axios
+      .get(`${process.env.NEXT_PUBLIC_PATH_API}/users/all`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        if (response.data.success) {
+          setData(response.data.result);
+        } else {
+          toast.error(response.data.msg || "Connection failed");
+        }
+      })
+      .catch((error) => {
+        toast.error(error.message || "Connection failed");
+      });
+  };
+
+  React.useEffect(() => {
+    getUsers();
+  }, []);
   return (
     <div>
       <div className="pb-2">
-        <TW.Button onClick={() => setOpenRight(true)}>
+        <TW.Button
+          onClick={() => {
+            setUser({
+              firstname: "",
+              lastname: "",
+              username: "",
+              role: "",
+            });
+            setUserId(undefined);
+            setOpenRight(true);
+          }}
+        >
           <div className="flex">
             <Icon.PlusIcon className="w-4 h-4 mr-2" /> Add user
           </div>
@@ -32,14 +151,23 @@ export default function Users() {
                   <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
                     <TW.Typography>№</TW.Typography>
                   </th>
-                  {Object.keys(pdata[0]).map((key) => (
-                    <th
-                      className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
-                      key={key}
-                    >
-                      <TW.Typography>{key}</TW.Typography>
-                    </th>
-                  ))}
+                  {data[0] &&
+                    Object.keys(data[0]).map((key) => {
+                      return (
+                        key !== "id" &&
+                        key !== "deleted_at" && (
+                          <th
+                            className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
+                            key={key}
+                          >
+                            <TW.Typography>{key}</TW.Typography>
+                          </th>
+                        )
+                      );
+                    })}
+                  <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
+                    <TW.Typography>Action</TW.Typography>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -59,18 +187,80 @@ export default function Users() {
                           {index + 1}
                         </TW.Typography>
                       </td>
-                      {Object.keys(row).map((key) => (
-                        <td className={classes} key={`${index}${key}`}>
-                          <TW.Typography
-                            variant="small"
-                            color="blue-gray"
-                            className="font-normal"
-                          >
-                            {row[key]}
-                          </TW.Typography>
-                        </td>
-                      ))}
-                      {/* <td>{row}</td> */}
+                      {Object.keys(row).map((key) => {
+                        return (
+                          key !== "id" && (
+                            <td className={classes} key={`${index}${key}`}>
+                              <TW.Typography
+                                variant="small"
+                                color="blue-gray"
+                                className="font-normal"
+                              >
+                                {row[key]}
+                              </TW.Typography>
+                            </td>
+                          )
+                        );
+                      })}
+                      <td
+                        className={`${classes} space-x-2`}
+                        key={`${index}action`}
+                      >
+                        <TW.Button
+                          onClick={() => {
+                            setUserId(row.id);
+                            setUser({
+                              firstname: row.firstname,
+                              lastname: row.lastname,
+                              username: row.username,
+                              role: row.role,
+                            });
+                            setOpenRight(true);
+                          }}
+                        >
+                          <Icon.PencilIcon className="w-4 h-4" />
+                        </TW.Button>
+                        <TW.Popover
+                          open={openPopover == row.id}
+                          handler={() =>
+                            setOpenPopover(openPopover === 0 ? row.id : 0)
+                          }
+                        >
+                          <TW.PopoverHandler>
+                            <TW.Button
+                              variant="outlined"
+                              color="red"
+                              onClick={() => {}}
+                            >
+                              <Icon.TrashIcon className="w-4 h-4" />
+                            </TW.Button>
+                          </TW.PopoverHandler>
+                          <TW.PopoverContent>
+                            <TW.Typography>
+                              Do you really want to remove this employees?
+                            </TW.Typography>
+                            <div className="flex justify-end pt-2 pr-2 space-x-2">
+                              <TW.Button
+                                size="sm"
+                                variant="outlined"
+                                onClick={() => setOpenPopover(0)}
+                              >
+                                Cancel
+                              </TW.Button>
+                              <TW.Button
+                                color="red"
+                                size="sm"
+                                onClick={() => {
+                                  removeUser(row.id);
+                                  setOpenPopover(0);
+                                }}
+                              >
+                                Remove
+                              </TW.Button>
+                            </div>
+                          </TW.PopoverContent>
+                        </TW.Popover>
+                      </td>
                     </tr>
                   );
                 })}

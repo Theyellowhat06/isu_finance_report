@@ -58,7 +58,11 @@ export default function MonitorLayout({ children }: any) {
     {
       icon: <Icon.ArrowLeftOnRectangleIcon className="h-5 w-5" />,
       label: "Гарах",
-      pathname: "/",
+      pathname: "/login",
+      onClick: () => {
+        console.log("aaaaaa");
+        localStorage.clear();
+      },
     },
   ];
   return (
@@ -142,6 +146,7 @@ export default function MonitorLayout({ children }: any) {
                     href={item.pathname}
                     key={item.pathname}
                     className="group"
+                    onClick={item.onClick}
                   >
                     <ListItem selected={pathname === item.pathname}>
                       <ListItemPrefix
