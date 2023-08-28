@@ -37,7 +37,10 @@ export default function Employee() {
       taxesNumber: "Taxes number",
     },
   ];
-  const token = localStorage.getItem("token");
+  const [token, setToken] = React.useState("");
+  React.useEffect(() => {
+    setToken(localStorage.getItem("token") || "");
+  }, []);
 
   const createEmployee = () => {
     const t = toast.loading("Createing new employee");
@@ -91,6 +94,7 @@ export default function Employee() {
       axios
         .post(
           `${process.env.NEXT_PUBLIC_PATH_API}/employees/delete/${employeeId}`,
+          {},
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -114,7 +118,9 @@ export default function Employee() {
   const getEmployees = () => {
     axios
       .get(`${process.env.NEXT_PUBLIC_PATH_API}/employees/all`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
       })
       .then((response) => {
         if (response.data.success) {

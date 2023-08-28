@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import { toastError, toastSuccess } from "../myToast";
 import jwt from "jsonwebtoken";
 
-export default function Home() {
+export default function Login() {
   const [username, setUsername] = React.useState();
   const [password, setPassword] = React.useState();
   const [loading, setLoading] = React.useState(false);
@@ -54,6 +54,9 @@ export default function Home() {
       });
   };
 
+  const keyHandler = (event: any) => {
+    if (event.key === "Enter") login();
+  };
   return (
     <div className="w-screen h-screen flex bg-blue-300">
       <div className="w-[calc(100%-600px)] bg-blue-300"></div>
@@ -66,21 +69,23 @@ export default function Home() {
             <Typography variant="h4" color="blue">
               Login
             </Typography>
-            <Typography>You can sign in using registered account</Typography>
+            <Typography>You can sign in using username and password</Typography>
             <Input
               label="Username"
               onChange={(e: any) => setUsername(e.target.value)}
+              onKeyDown={keyHandler}
             ></Input>
             <Input
               label="Password"
               type="password"
               onChange={(e: any) => setPassword(e.target.value)}
+              onKeyDown={keyHandler}
             ></Input>
-            <div className="flex items-center">
+            {/* <div className="flex items-center">
               <Checkbox label="Remember me" />
-            </div>
+            </div> */}
             <div>
-              <Button fullWidth onClick={login}>
+              <Button fullWidth onClick={login} type="submit">
                 <div className="flex justify-center">
                   {loading && (
                     <Icon.ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
@@ -89,7 +94,6 @@ export default function Home() {
                 </div>
               </Button>
             </div>
-            <div className="text-red-500 flex justify-center">{errorMsg}</div>
           </div>
         </Card>
       </div>

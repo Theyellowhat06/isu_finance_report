@@ -20,7 +20,8 @@ import {
 import * as Icon from "@heroicons/react/24/solid";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Children, useState } from "react";
+import jwt from "jsonwebtoken";
+import { Children, useEffect, useState } from "react";
 
 const path = "/manage";
 
@@ -28,6 +29,7 @@ export default function MonitorLayout({ children }: any) {
   const pathname = usePathname();
   const [dialogContent, setDialogContent] = useState<any>(null);
   const [open, setOpen] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [userData, setUserData] = useState<any>({
     fname: "Ner",
     lname: "Ovog",
@@ -54,17 +56,25 @@ export default function MonitorLayout({ children }: any) {
       icon: <Icon.UserIcon className="h-5 w-5" />,
       label: "Хэрэглэгчид",
       pathname: `${process.env.NEXT_PUBLIC_PATH_MANAGE}/users`,
+      admin: true,
     },
     {
       icon: <Icon.ArrowLeftOnRectangleIcon className="h-5 w-5" />,
       label: "Гарах",
       pathname: "/login",
       onClick: () => {
-        console.log("aaaaaa");
+        // console.log("aaaaaa");
         localStorage.clear();
       },
     },
   ];
+  useEffect(() => {
+    const decoded = jwt.decode(localStorage.getItem("token") || "");
+    if (typeof decoded !== "string") {
+      // console.log(decoded);
+      if (decoded?.permission_id == 1) setIsAdmin(true);
+    }
+  }, []);
   return (
     <div className="w-screen h-screen flex bg-blue-gray-50">
       <div className="p-4">
@@ -75,92 +85,27 @@ export default function MonitorLayout({ children }: any) {
           <hr className="my-2 border-blue-gray-50" />
           <List className="overflow-y-auto">
             {listItems.map((item: any, i: any) => (
-              <div key={i}>
-                {item.children ? (
-                  <Accordion
-                    open={
-                      open === i ||
-                      item.children.filter(
-                        (child: any) => child.pathname === pathname
-                      ).length > 0
-                    }
-                    icon={
-                      <Icon.ChevronDownIcon
-                        strokeWidth={2.5}
-                        className={`mx-auto h-4 w-4 transition-transform ${
-                          open === i ? "rotate-180" : ""
-                        }`}
-                      />
-                    }
-                  >
-                    <ListItem
-                      className="p-0"
-                      selected={pathname === item.pathname}
-                    >
-                      <AccordionHeader
-                        onClick={() => {
-                          setOpen(open === i ? 0 : i);
-                        }}
-                        className="border-b-0 px-3 group"
-                      >
-                        <ListItemPrefix
-                          className={`group-hover:text-blue-500 ${
-                            pathname === item.pathname && "text-blue-500"
-                          }`}
-                        >
-                          {item.icon}
-                        </ListItemPrefix>
-                        <Typography className={"mr-auto"}>
-                          {item.label}
-                        </Typography>
-                      </AccordionHeader>
-                    </ListItem>
-                    <AccordionBody>
-                      <List className="p-0">
-                        {item.children.map((child: any) => (
-                          <Link
-                            href={child.pathname}
-                            key={child.pathname}
-                            className="group"
-                          >
-                            <ListItem selected={pathname === child.pathname}>
-                              <ListItemPrefix
-                                className={`group-hover:text-blue-500 ${
-                                  pathname === child.pathname && "text-blue-500"
-                                }`}
-                              >
-                                <Icon.ChevronRightIcon
-                                  strokeWidth={3}
-                                  className="h-3 w-5"
-                                />
-                              </ListItemPrefix>
-                              <Typography>{child.label}</Typography>
-                            </ListItem>
-                          </Link>
-                        ))}
-                      </List>
-                    </AccordionBody>
-                  </Accordion>
+              <>
+                {item.admin ? (
+                  isAdmin && (
+                    <Menu
+                      item={item}
+                      i={i}
+                      open={open}
+                      setOpen={setOpen}
+                      pathname={pathname}
+                    />
+                  )
                 ) : (
-                  <Link
-                    href={item.pathname}
-                    key={item.pathname}
-                    className="group"
-                    onClick={item.onClick}
-                  >
-                    <ListItem selected={pathname === item.pathname}>
-                      <ListItemPrefix
-                        className={`group-hover:text-blue-500 ${
-                          pathname === item.pathname && "text-blue-500"
-                        }`}
-                      >
-                        {item.icon}
-                      </ListItemPrefix>
-                      <Typography>{item.label}</Typography>
-                    </ListItem>
-                  </Link>
+                  <Menu
+                    item={item}
+                    i={i}
+                    open={open}
+                    setOpen={setOpen}
+                    pathname={pathname}
+                  />
                 )}
-              </div>
+              </>
             ))}
           </List>
         </Card>
@@ -196,45 +141,99 @@ export default function MonitorLayout({ children }: any) {
   );
 }
 
-// function createDialogContent(data: any, setData: any) {
-//   let formData = data;
-//   return (
-//     <form>
-//       <div className="space-y-4 flex flex-col items-center px-8">
-//         <Typography>
-//           You can change your profile information what ever you want
-//         </Typography>
-
-//         <Input
-//           label="First Name"
-//           name="fname"
-//           defaultValue={formData.fname}
-//           onChange={onChangeHandler}
-//         />
-//         <Input
-//           label="Last Name"
-//           name="lname"
-//           defaultValue={formData.lname}
-//           onChange={onChangeHandler}
-//         />
-
-//         <Input
-//           label="Username"
-//           name="username"
-//           defaultValue={formData.username}
-//           onChange={onChangeHandler}
-//         />
-//         <Input
-//           label="Password"
-//           name="password"
-//           defaultValue={formData.password}
-//           onChange={onChangeHandler}
-//         />
-//       </div>
-//     </form>
-//   );
-//   function onChangeHandler(e: any) {
-//     formData = { ...formData, [e.target.name]: e.target.value };
-//     setData(formData);
-//   }
-// }
+const Menu = ({
+  item,
+  i,
+  open,
+  setOpen,
+  pathname,
+}: {
+  item: any;
+  i: number;
+  open: number;
+  setOpen: any;
+  pathname: string;
+}) => {
+  return (
+    <div key={i}>
+      {item.children ? (
+        <Accordion
+          open={
+            open === i ||
+            item.children.filter((child: any) => child.pathname === pathname)
+              .length > 0
+          }
+          icon={
+            <Icon.ChevronDownIcon
+              strokeWidth={2.5}
+              className={`mx-auto h-4 w-4 transition-transform ${
+                open === i ? "rotate-180" : ""
+              }`}
+            />
+          }
+        >
+          <ListItem className="p-0" selected={pathname === item.pathname}>
+            <AccordionHeader
+              onClick={() => {
+                setOpen(open === i ? 0 : i);
+              }}
+              className="border-b-0 px-3 group"
+            >
+              <ListItemPrefix
+                className={`group-hover:text-blue-500 ${
+                  pathname === item.pathname && "text-blue-500"
+                }`}
+              >
+                {item.icon}
+              </ListItemPrefix>
+              <Typography className={"mr-auto"}>{item.label}</Typography>
+            </AccordionHeader>
+          </ListItem>
+          <AccordionBody>
+            <List className="p-0">
+              {item.children.map((child: any) => (
+                <Link
+                  href={child.pathname}
+                  key={child.pathname}
+                  className="group"
+                >
+                  <ListItem selected={pathname === child.pathname}>
+                    <ListItemPrefix
+                      className={`group-hover:text-blue-500 ${
+                        pathname === child.pathname && "text-blue-500"
+                      }`}
+                    >
+                      <Icon.ChevronRightIcon
+                        strokeWidth={3}
+                        className="h-3 w-5"
+                      />
+                    </ListItemPrefix>
+                    <Typography>{child.label}</Typography>
+                  </ListItem>
+                </Link>
+              ))}
+            </List>
+          </AccordionBody>
+        </Accordion>
+      ) : (
+        <Link
+          href={item.pathname}
+          key={item.pathname}
+          className="group"
+          onClick={item.onClick}
+        >
+          <ListItem selected={pathname === item.pathname}>
+            <ListItemPrefix
+              className={`group-hover:text-blue-500 ${
+                pathname === item.pathname && "text-blue-500"
+              }`}
+            >
+              {item.icon}
+            </ListItemPrefix>
+            <Typography>{item.label}</Typography>
+          </ListItem>
+        </Link>
+      )}
+    </div>
+  );
+};

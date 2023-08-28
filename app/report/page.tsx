@@ -243,7 +243,7 @@ export default function Report() {
         const r7 = Number(params.data["3"]) * 0.115;
 
         const other = Number(params.data["2"]) + Number(params.data["3"]) - r7;
-        console.log(other);
+        // console.log(other);
         return formater.format(
           Number(params.data["13"]) -
             other -
@@ -265,7 +265,7 @@ export default function Report() {
 
   // Example of consuming Grid Event
   const cellClickedListener = React.useCallback((event: any) => {
-    console.log("cellClicked", event);
+    // console.log("cellClicked", event);
   }, []);
   // React.useEffect(()=>{
 
@@ -281,10 +281,13 @@ export default function Report() {
     axios
       .get(`${process.env.NEXT_PUBLIC_PATH_API}/taxes/report`, {
         params: { year: year, quarter: quarter },
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
       })
       .then((response) => {
         if (response.data.success) {
-          console.log(response.data.result);
+          // console.log(response.data.result);
           setTaxesData(
             response.data.result.map(
               (row: {
