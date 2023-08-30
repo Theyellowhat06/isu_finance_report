@@ -42,7 +42,7 @@ export default function MonitorLayout({ children }: any) {
     },
     {
       icon: <Icon.ClipboardDocumentIcon className="h-5 w-5" />,
-      label: "Нийгэмийн даатгал",
+      label: "Нийгмийн даатгал",
       pathname: `${process.env.NEXT_PUBLIC_PATH_MANAGE}/nd`,
     },
     {
