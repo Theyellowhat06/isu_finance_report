@@ -23,13 +23,18 @@ export default function Nd() {
       const workbook = XLSX.read(data, { type: "binary" });
       const sheetName1 = workbook.SheetNames[0];
       const sheet1 = workbook.Sheets[sheetName1];
-      console.log(sheet1);
+      // console.log(sheet1);
       const parsedData1 = XLSX.utils.sheet_to_json(sheet1);
       // const sheetName2 = workbook.SheetNames[1];
       // const sheet2 = workbook.Sheets[sheetName2];
       // const parsedData2 = XLSX.utils.sheet_to_json(sheet2);
-      setPdata(parsedData1);
-      console.log(parsedData1);
+      const temp: any = parsedData1[0];
+      if (temp["__EMPTY"] && temp["__EMPTY"].toString() === "Даатгуулагчийн") {
+        setPdata(parsedData1);
+      } else {
+        toast.error("Сонгосон файл загварт нийцэхгүй байна");
+      }
+      // console.log(parsedData1);
       // console.log(parsedData2);
       // setData(parsedData);
     };
@@ -54,13 +59,17 @@ export default function Nd() {
       nd_month: month,
       nd_date: `${year}-${month}-01`,
     };
-    console.log(data);
+    // console.log(data);
     axios
-      .post(`${process.env.NEXT_PUBLIC_PATH_API}/nd/add`, data)
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/nd/add`, data, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
+      })
       .then((response) => {
         if (response.data.success) {
-          console.log(response.data.result);
-          toastSuccess(t, `${year}-${month} сарийн файл амжилттай илгээгдлээ`);
+          // console.log(response.data.result);
+          toastSuccess(t, `${year}-${month} сарын файл амжилттай илгээгдлээ`);
           setPdata([]);
           // router.push(`${process.env.NEXT_PUBLIC_PATH_MANAGE}`);
         } else {
@@ -112,7 +121,9 @@ export default function Nd() {
               onChange={(value: any) => setMonth(value)}
             >
               {months.map((m: number) => (
-                <TW.Option value={`${m}`}>{m}-р сар</TW.Option>
+                <TW.Option value={`${m}`} key={m}>
+                  {m}-р сар
+                </TW.Option>
               ))}
             </TW.Select>
           </div>

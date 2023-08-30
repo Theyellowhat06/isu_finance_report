@@ -11,17 +11,18 @@ export default function Users() {
   const [openRight, setOpenRight] = React.useState(false);
   const [openPopover, setOpenPopover] = React.useState(0);
   const [user, setUser] = React.useState<{
-    firstname?: string;
-    lastname?: string;
+    fname?: string;
+    lname?: string;
     username?: string;
-    role?: string;
+    permission_id?: string;
+    password?: string;
   }>();
   const [userId, setUserId] = React.useState<number>();
   const [data, setData] = React.useState<
     {
       id: number;
-      firstname: string;
-      lastname: string;
+      fname: string;
+      lname: string;
       username: string;
       role: string;
       created_at: string;
@@ -29,18 +30,21 @@ export default function Users() {
   >([]);
   const pdata = [
     {
-      firstname: "Firstname",
-      lastname: "Lastname",
+      fname: "Firstname",
+      lname: "Lastname",
       username: "Username",
       role: "Admin",
     },
   ];
-  const token = localStorage.getItem("token");
+  const [token, setToken] = React.useState("");
+  React.useEffect(() => {
+    setToken(localStorage.getItem("token") || "");
+  }, []);
 
   const createUser = () => {
     const t = toast.loading("Createing new user");
     axios
-      .post(`${process.env.NEXT_PUBLIC_PATH_API}/users/add`, user, {
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/user/add`, user, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -61,7 +65,7 @@ export default function Users() {
   const updateUser = () => {
     const t = toast.loading("Updating user");
     axios
-      .post(`${process.env.NEXT_PUBLIC_PATH_API}/users/edit/${userId}`, user, {
+      .post(`${process.env.NEXT_PUBLIC_PATH_API}/user/edit/${userId}`, user, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -83,9 +87,13 @@ export default function Users() {
     const t = toast.loading("Deleting user");
     try {
       axios
-        .post(`${process.env.NEXT_PUBLIC_PATH_API}/users/delete/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+        .post(
+          `${process.env.NEXT_PUBLIC_PATH_API}/user/delete/${userId}`,
+          {},
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        )
         .then((response) => {
           if (response.data.success) {
             getUsers();
@@ -104,8 +112,10 @@ export default function Users() {
 
   const getUsers = () => {
     axios
-      .get(`${process.env.NEXT_PUBLIC_PATH_API}/users/all`, {
-        headers: { Authorization: `Bearer ${token}` },
+      .get(`${process.env.NEXT_PUBLIC_PATH_API}/user/all`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        },
       })
       .then((response) => {
         if (response.data.success) {
@@ -128,10 +138,11 @@ export default function Users() {
         <TW.Button
           onClick={() => {
             setUser({
-              firstname: "",
-              lastname: "",
+              fname: "",
+              lname: "",
               username: "",
-              role: "",
+              permission_id: "",
+              password: "",
             });
             setUserId(undefined);
             setOpenRight(true);
@@ -142,7 +153,7 @@ export default function Users() {
           </div>
         </TW.Button>
       </div>
-      {pdata && pdata.length > 0 && (
+      {data && data.length > 0 && (
         <TW.Card>
           <div className="p-4 overflow-auto">
             <table>
@@ -160,7 +171,9 @@ export default function Users() {
                             className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
                             key={key}
                           >
-                            <TW.Typography>{key}</TW.Typography>
+                            <TW.Typography>
+                              {key === "permission_id" ? "role" : key}
+                            </TW.Typography>
                           </th>
                         )
                       );
@@ -171,8 +184,8 @@ export default function Users() {
                 </tr>
               </thead>
               <tbody>
-                {pdata.map((row: any, index: any) => {
-                  const isLast = index === pdata.length - 1;
+                {data.map((row: any, index: any) => {
+                  const isLast = index === data.length - 1;
                   const classes = isLast
                     ? "p-4"
                     : "p-4 border-b border-blue-gray-50";
@@ -196,7 +209,11 @@ export default function Users() {
                                 color="blue-gray"
                                 className="font-normal"
                               >
-                                {row[key]}
+                                {key === "permission_id"
+                                  ? row[key] === 1
+                                    ? "Admin"
+                                    : "User"
+                                  : row[key]}
                               </TW.Typography>
                             </td>
                           )
@@ -210,10 +227,11 @@ export default function Users() {
                           onClick={() => {
                             setUserId(row.id);
                             setUser({
-                              firstname: row.firstname,
-                              lastname: row.lastname,
+                              fname: row.fname,
+                              lname: row.lname,
                               username: row.username,
-                              role: row.role,
+                              permission_id: row.permission_id,
+                              password: "",
                             });
                             setOpenRight(true);
                           }}
@@ -289,11 +307,38 @@ export default function Users() {
           </TW.IconButton>
         </div>
         <form className="space-y-2">
-          <TW.Input label="Username" />
-          <TW.Input label="Username" />
-          <TW.Input label="Username" />
-          <TW.Input label="Username" />
-          <TW.Button>Submit</TW.Button>
+          <TW.Input
+            label="Firstname"
+            value={user?.fname}
+            onChange={(e) => setUser({ ...user, fname: e.target.value })}
+          />
+          <TW.Input
+            label="Lastname"
+            value={user?.lname}
+            onChange={(e) => setUser({ ...user, lname: e.target.value })}
+          />
+          <TW.Input
+            label="Username"
+            value={user?.username}
+            onChange={(e) => setUser({ ...user, username: e.target.value })}
+          />
+          <TW.Input
+            label="Password"
+            type={"password"}
+            value={user?.password}
+            onChange={(e) => setUser({ ...user, password: e.target.value })}
+          />
+          <TW.Select
+            label="permission"
+            value={`${user?.permission_id}`}
+            onChange={(e) => setUser({ ...user, permission_id: e })}
+          >
+            <TW.Option value="2">User</TW.Option>
+            <TW.Option value="1">Admin</TW.Option>
+          </TW.Select>
+          <TW.Button onClick={userId ? updateUser : createUser}>
+            Submit
+          </TW.Button>
         </form>
       </TW.Drawer>
     </div>

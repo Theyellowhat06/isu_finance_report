@@ -23,9 +23,9 @@ export default function RootLayout({
     const now = new Date().getTime() / 1000;
     if (pathname === "/") {
       if (userId && parseInt(exp || "0") > now) router.replace("/report");
-    } else {
-      if (!userId || parseInt(exp || "0") <= now || !token) router.replace("/");
-    }
+      else router.replace("/login");
+    } else if (!userId || parseInt(exp || "0") <= now || !token)
+      router.replace("/login");
   }, []);
   return (
     <ThemeProvider>
