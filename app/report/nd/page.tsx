@@ -133,14 +133,21 @@ export default function Nd() {
               Review
             </div>
           </TW.Button> */}
-          <Link href={`../ND_TEMPLATE2.xlsx`}>
-            <TW.Button>
-              <div className="flex">
-                <Icon.DocumentIcon className="w-4 h-4 mr-2" />
-                Template
-              </div>
-            </TW.Button>
-          </Link>
+          {/* <Link href={`../ND_TEMPLATE2.xlsx`}> */}
+          <TW.Button
+            onClick={() => {
+              const URL = "../ND_TEMPLATE2.xlsx";
+              if (typeof window !== "undefined") {
+                window.location.href = URL;
+              }
+            }}
+          >
+            <div className="flex">
+              <Icon.DocumentIcon className="w-4 h-4 mr-2" />
+              Template
+            </div>
+          </TW.Button>
+          {/* </Link> */}
 
           {pdata && pdata.length > 3 && (
             <TW.Button color="green" onClick={upload}>
