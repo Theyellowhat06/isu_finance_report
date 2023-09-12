@@ -23,12 +23,15 @@ export default function Nd() {
       const workbook = XLSX.read(data, { type: "binary" });
       const sheetName1 = workbook.SheetNames[0];
       const sheet1 = workbook.Sheets[sheetName1];
-      // console.log(sheet1);
+
+      console.log(sheet1);
       const parsedData1 = XLSX.utils.sheet_to_json(sheet1);
       // const sheetName2 = workbook.SheetNames[1];
       // const sheet2 = workbook.Sheets[sheetName2];
       // const parsedData2 = XLSX.utils.sheet_to_json(sheet2);
       const temp: any = parsedData1[0];
+      console.log(temp);
+      console.log(parsedData1);
       if (temp["__EMPTY"] && temp["__EMPTY"].toString() === "Даатгуулагчийн") {
         setPdata(parsedData1);
       } else {
@@ -47,11 +50,15 @@ export default function Nd() {
         ({ __EMPTY_3, __EMPTY_6, __EMPTY_9 }: any) =>
           __EMPTY_3 !== undefined && !isNaN(Number(__EMPTY_6))
       )
-      .map(({ __EMPTY_3, __EMPTY_6, __EMPTY_9 }: any) => ({
-        register_number: __EMPTY_3,
-        nd_value: __EMPTY_6,
-        nd_fee: __EMPTY_9,
-      }));
+      .map(
+        ({ __EMPTY_1, __EMPTY_2, __EMPTY_3, __EMPTY_6, __EMPTY_9 }: any) => ({
+          lname: __EMPTY_1,
+          fname: __EMPTY_2,
+          register_number: __EMPTY_3,
+          nd_value: __EMPTY_6,
+          nd_fee: __EMPTY_9,
+        })
+      );
     // console.log(employees);
     const data = {
       employees: employees,

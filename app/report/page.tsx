@@ -294,6 +294,8 @@ export default function Report() {
                 id: number;
                 firstname: string;
                 lastname: string;
+                nd_fname: string;
+                nd_lname: string;
                 taxes_number: string;
                 register_number: string;
                 nd_value: number;
@@ -302,8 +304,8 @@ export default function Report() {
                 nd_tax_discount: number;
               }) => ({
                 taxes_number: row.taxes_number,
-                lastname: row.lastname,
-                firstname: row.firstname,
+                lastname: row.lastname ? row.lastname : row.nd_lname,
+                firstname: row.firstname ? row.firstname : row.nd_fname,
                 1: row.nd_value,
                 2: "0",
                 3: "0",
