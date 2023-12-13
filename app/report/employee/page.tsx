@@ -6,7 +6,8 @@ import * as Icon from "@heroicons/react/24/solid";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { toastError, toastSuccess } from "@/app/myToast";
-import { popover } from "@material-tailwind/react";
+import { Button, Card, Checkbox, Drawer, IconButton, Input, Popover, PopoverContent, PopoverHandler, Typography, popover } from "@material-tailwind/react";
+import { useState } from "react";
 
 export default function Employee() {
   const [openRight, setOpenRight] = React.useState(false);
@@ -17,6 +18,7 @@ export default function Employee() {
     register_number?: string;
     firstname?: string;
     lastname?: string;
+    is_temp?: boolean;
   }>();
   const [employeeId, setEmployeeId] = React.useState<number>();
   const [data, setData] = React.useState<
@@ -141,13 +143,14 @@ export default function Employee() {
   return (
     <div>
       <div className="pb-2">
-        <TW.Button
+        <Button
           onClick={() => {
             setEmployee({
               taxes_number: "",
               register_number: "",
               firstname: "",
               lastname: "",
+              is_temp: false,
             });
             setEmployeeId(undefined);
             setOpenRight(true);
@@ -156,16 +159,16 @@ export default function Employee() {
           <div className="flex">
             <Icon.PlusIcon className="w-4 h-4 mr-2" /> Add employee
           </div>
-        </TW.Button>
+        </Button>
       </div>
       {data && data.length > 0 && (
-        <TW.Card>
+        <Card>
           <div className="p-4 overflow-auto">
             <table>
               <thead>
                 <tr>
                   <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                    <TW.Typography>№</TW.Typography>
+                    <Typography>№</Typography>
                   </th>
                   {Object.keys(data[0]).map((key) => {
                     return (
@@ -175,16 +178,16 @@ export default function Employee() {
                           className="border-b border-blue-gray-100 bg-blue-gray-50 p-4"
                           key={key}
                         >
-                          <TW.Typography>{key}</TW.Typography>
+                          <Typography>{key}</Typography>
                         </th>
                       )
                     );
                   })}
                   <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                    <TW.Typography>.</TW.Typography>
+                    <Typography>.</Typography>
                   </th>
                   <th className="border-b border-blue-gray-100 bg-blue-gray-50 p-4">
-                    <TW.Typography>Action</TW.Typography>
+                    <Typography>Action</Typography>
                   </th>
                 </tr>
               </thead>
@@ -197,25 +200,25 @@ export default function Employee() {
                   return (
                     <tr key={index}>
                       <td className={classes} key={`${index}`}>
-                        <TW.Typography
+                        <Typography
                           variant="small"
                           color="blue-gray"
                           className="font-normal"
                         >
                           {index + 1}
-                        </TW.Typography>
+                        </Typography>
                       </td>
                       {Object.keys(row).map((key) => {
                         return (
                           key !== "id" && (
                             <td className={classes} key={`${index}${key}`}>
-                              <TW.Typography
+                              <Typography
                                 variant="small"
                                 color="blue-gray"
                                 className="font-normal"
                               >
                                 {row[key]}
-                              </TW.Typography>
+                              </Typography>
                             </td>
                           )
                         );
@@ -224,7 +227,7 @@ export default function Employee() {
                         className={`${classes} space-x-2`}
                         key={`${index}action`}
                       >
-                        <TW.Button
+                        <Button
                           onClick={() => {
                             setEmployeeId(row.id);
                             setEmployee({
@@ -232,40 +235,41 @@ export default function Employee() {
                               register_number: row.register_number,
                               firstname: row.firstname,
                               lastname: row.lastname,
+                              is_temp: row.is_temp || false
                             });
                             setOpenRight(true);
                           }}
                         >
                           <Icon.PencilIcon className="w-4 h-4" />
-                        </TW.Button>
-                        <TW.Popover
+                        </Button>
+                        <Popover
                           open={openPopover == row.id}
                           handler={() =>
                             setOpenPopover(openPopover === 0 ? row.id : 0)
                           }
                         >
-                          <TW.PopoverHandler>
-                            <TW.Button
+                          <PopoverHandler>
+                            <Button
                               variant="outlined"
                               color="red"
                               onClick={() => {}}
                             >
                               <Icon.TrashIcon className="w-4 h-4" />
-                            </TW.Button>
-                          </TW.PopoverHandler>
-                          <TW.PopoverContent>
-                            <TW.Typography>
+                            </Button>
+                          </PopoverHandler>
+                          <PopoverContent>
+                            <Typography>
                               Do you really want to remove this employees?
-                            </TW.Typography>
+                            </Typography>
                             <div className="flex justify-end pt-2 pr-2 space-x-2">
-                              <TW.Button
+                              <Button
                                 size="sm"
                                 variant="outlined"
                                 onClick={() => setOpenPopover(0)}
                               >
                                 Cancel
-                              </TW.Button>
-                              <TW.Button
+                              </Button>
+                              <Button
                                 color="red"
                                 size="sm"
                                 onClick={() => {
@@ -274,10 +278,10 @@ export default function Employee() {
                                 }}
                               >
                                 Remove
-                              </TW.Button>
+                              </Button>
                             </div>
-                          </TW.PopoverContent>
-                        </TW.Popover>
+                          </PopoverContent>
+                        </Popover>
                       </td>
                       {/* <td>{row}</td> */}
                     </tr>
@@ -286,9 +290,9 @@ export default function Employee() {
               </tbody>
             </table>
           </div>
-        </TW.Card>
+        </Card>
       )}
-      <TW.Drawer
+      <Drawer
         placement="right"
         open={openRight}
         onClose={() => setOpenRight(false)}
@@ -296,51 +300,58 @@ export default function Employee() {
         size={400}
       >
         <div className="mb-6 flex items-center justify-between">
-          <TW.Typography variant="h5" color="blue-gray">
+          <Typography variant="h5" color="blue-gray">
             {employeeId ? "Edit" : "Add"} Employee
-          </TW.Typography>
-          <TW.IconButton
+          </Typography>
+          <IconButton
             variant="text"
             color="blue-gray"
             onClick={() => setOpenRight(false)}
           >
             <Icon.XMarkIcon className="w-5 h-5" />
-          </TW.IconButton>
+          </IconButton>
         </div>
         <form className="space-y-2">
-          <TW.Input
+          <div>Taxes number:</div>
+          <Input
             label="Taxes number"
             value={employee?.taxes_number}
             onChange={(e) =>
               setEmployee({ ...employee, taxes_number: e.target.value })
             }
           />
-          <TW.Input
+          <Typography className="pt-2">Register number:</Typography>
+          <Input
             label="Register number"
             value={employee?.register_number}
             onChange={(e) =>
               setEmployee({ ...employee, register_number: e.target.value })
             }
           />
-          <TW.Input
+          <Typography className="pt-2">Firstname:</Typography>
+          <Input
             label="Firstname"
             value={employee?.firstname}
             onChange={(e) =>
               setEmployee({ ...employee, firstname: e.target.value })
             }
           />
-          <TW.Input
+          <Typography className="pt-2">Lastname:</Typography>
+          <Input
             label="Lastname"
             value={employee?.lastname}
             onChange={(e) =>
               setEmployee({ ...employee, lastname: e.target.value })
             }
           />
-          <TW.Button onClick={employeeId ? updateEmployee : createEmployee}>
+          <div className="flex items-center px-4">
+            <Checkbox label="Түр ажилтан" checked={employee?.is_temp || false} onChange={(e)=>setEmployee({ ...employee, is_temp: e.target.checked })}/>
+          </div>
+          <Button onClick={employeeId ? updateEmployee : createEmployee}>
             Submit
-          </TW.Button>
+          </Button>
         </form>
-      </TW.Drawer>
+      </Drawer>
     </div>
   );
 }
