@@ -7,6 +7,7 @@ import axios from "axios";
 import { AgGridReact } from "ag-grid-react";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import { Pragati_Narrow } from "next/font/google";
 
 export default function Report() {
   const [range, setRange] = React.useState(null);
@@ -16,9 +17,10 @@ export default function Report() {
   const [taxesData, setTaxesData] = React.useState<any[]>();
   const gridRef = React.useRef<AgGridReact<any>>(null); // Optional - for accessing Grid's API
   const [rowData, setRowData] = React.useState(); // Set rowData to Array of Objects, one Object per Row
+  const [tempEmployees, setTempEmployees] = React.useState<string[]>([]);
 
   // Each Column Definition results in one Column.
-  const [columnDefs, setColumnDefs] = React.useState([
+  const columnDefs = React.useMemo(() =>[
     {
       field: "taxes_number",
       headerName: "Татвар төлөгчийн дугаар",
@@ -165,24 +167,29 @@ export default function Report() {
       cellEditor: "agNumberCellEditor",
       valueFormatter: (params: any) => {
         // const other =
-        const r7 = Number(params.data["3"]) * 0.115;
+        // console.log(params);
+        // const r7 = Number(params.data["3"]) * 0.115;
 
-        const income = Number(params.data["2"]) + Number(params.data["3"]) - r7;
+        const income = Number(params.data["4"]) - Number(params.data["6"]);
         let result = 0;
-        if (income <= 500000) {
-          result = 20000;
-        } else if (income <= 1000000) {
-          result = 18000;
-        } else if (income <= 1500000) {
-          result = 16000;
-        } else if (income <= 2000000) {
-          result = 14000;
-        } else if (income <= 2500000) {
-          result = 12000;
-        } else if (income <= 3000000) {
-          result = 10000;
+        if(!tempEmployees.includes(params.data["taxes_number"])){
+          const totalMonths = +quarter * 3;
+          if (income <= (500000 * totalMonths)) {
+            result = (20000 * totalMonths);
+          } else if (income <= (1000000 * totalMonths)) {
+            result = (18000 * totalMonths);
+          } else if (income <= (1500000 * totalMonths)) {
+            result = 16000 * totalMonths;
+          } else if (income <= (2000000 * totalMonths)) {
+            result = 14000 * totalMonths;
+          } else if (income <= (2500000 * totalMonths)) {
+            result = 12000 * totalMonths;
+          } else if (income <= (3000000 * totalMonths)) {
+            result = 10000 * totalMonths;
+          }
         }
-        return formater.format(Number(params.value));
+        
+        return formater.format(Number(result));
       },
       /*
       "11"
@@ -253,7 +260,7 @@ export default function Report() {
         );
       },
     },
-  ]);
+  ], [taxesData, tempEmployees]);
   const formater = Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -288,6 +295,10 @@ export default function Report() {
       .then((response) => {
         if (response.data.success) {
           // console.log(response.data.result);
+          console.log(response.data.result.filter((row:{is_temp: number})=> row.is_temp > 0).map((row: {taxes_number: string})=> row.taxes_number))
+          setTempEmployees(
+            response.data.result.filter((row:{is_temp: number})=> row.is_temp > 0).map((row: {taxes_number: string})=> row.taxes_number)
+          )
           setTaxesData(
             response.data.result.map(
               (row: {
@@ -1849,7 +1860,10 @@ export default function Report() {
             <TW.Select
               label="Улирал"
               value={quarter}
-              onChange={(value: any) => setQuarter(value)}
+              onChange={(value: any) => {
+                console.log(value);
+                console.log(quarter);
+                setQuarter(value);}}
             >
               <TW.Option value="1">1-р улирал</TW.Option>
               <TW.Option value="2">2-р улирал</TW.Option>
